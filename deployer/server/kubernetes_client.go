@@ -3,11 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
-	"strconv"
-	"time"
 )
 
 const (
@@ -28,25 +29,25 @@ func (s *Server) CheckIfServiceExists(ctx context.Context, username string) (boo
 	return false, nil
 }
 
-func (s *Server) DeployContainer(ctx context.Context, username string) error {
+func (s *Server) DeployContainer(ctx context.Context, username string) int,error {
+	port := s.port
 	resp, err := s.client.ContainerCreate(ctx, &container.Config{
 		Image: s.image,
 	}, &container.HostConfig{PortBindings: nat.PortMap{"8080": []nat.PortBinding{
 		{
 			HostIP:   "127.0.0.1",
-			HostPort: strconv.Itoa(s.port),
+			HostPort: strconv.Itoa(port),
 		},
 	}}}, nil, nil, username)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	s.port++
 	if err := s.client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		panic(err)
+		return err
 	}
-
-	fmt.Println(resp.ID)
-	return nil
+	fmt.Println(port)
+	return port,nil
 }
 
 type NotFound struct{}

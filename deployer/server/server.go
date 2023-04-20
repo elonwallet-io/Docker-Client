@@ -3,9 +3,10 @@ package server
 import (
 	"context"
 	"fmt"
-	client "github.com/docker/docker/client"
 	"net/http"
 	"time"
+
+	client "github.com/docker/docker/client"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,6 +20,10 @@ type Server struct {
 
 type User struct {
 	Name string `json:"name"`
+}
+
+type Url struct {
+	Url string `json:"url"`
 }
 
 func New() (*Server, error) {
@@ -64,13 +69,15 @@ func (s *Server) deployment(c echo.Context) error {
 	}
 	exists, _ := s.CheckIfServiceExists(c.Request().Context(), u.Name)
 	fmt.Printf("service exists: %v", exists)
+	port := 0
 	if !exists {
-		err := s.DeployContainer(c.Request().Context(), u.Name)
+		var err error
+		port, err = s.DeployContainer(c.Request().Context(), u.Name)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 	}
-	return c.String(http.StatusOK, "")
+	return c.JSON(http.StatusOK, Url{Url: fmt.Sprintf("http://127.0.0.1:%v", port)})
 }
 
 func (s *Server) deletion(c echo.Context) error {
