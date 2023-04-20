@@ -40,7 +40,7 @@ func New() (*Server, error) {
 		echo:   echo.New(),
 		port:   8085,
 		client: client,
-		image:  "serverless", // <----------------------------------------------------     Change image name here
+		image:  "function", // <----------------------------------------------------     Change image name here
 	}, nil
 }
 
@@ -48,7 +48,7 @@ func (s *Server) Run() (err error) {
 	s.echo.POST("/enclaves", s.deployment)
 	s.echo.DELETE("/enclaves/:id", s.deletion)
 	port := "8082" // <----------------------------------------------------     Change server port here
-	err = s.echo.Start(":" + port)
+	err = s.echo.Start("127.0.0.1:" + port)
 	if err == http.ErrServerClosed {
 		err = nil
 	}

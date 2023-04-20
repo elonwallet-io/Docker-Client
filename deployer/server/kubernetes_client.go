@@ -32,7 +32,7 @@ func (s *Server) CheckIfServiceExists(ctx context.Context, username string) (boo
 func (s *Server) DeployContainer(ctx context.Context, username string) (int, error) {
 	port := s.port
 	hostBinding := nat.PortBinding{
-		HostIP:   "127.0.0.1",
+		HostIP:   "0.0.0.0",
 		HostPort: strconv.Itoa(port),
 	}
 	containerPort, err := nat.NewPort("tcp", "8081")
@@ -43,6 +43,10 @@ func (s *Server) DeployContainer(ctx context.Context, username string) (int, err
 
 	resp, err := s.client.ContainerCreate(ctx, &container.Config{
 		Image: s.image,
+		ExposedPorts: nat.PortSet{
+			"8081/tcp": struct{}{},
+		},
+		Env: []string{"FRONTEND_URL=http://localhost:3000", "FRONTEND_HOST=localhost"},
 	}, &container.HostConfig{PortBindings: portBinding}, nil, nil, username)
 	if err != nil {
 		return 0, err
@@ -52,6 +56,7 @@ func (s *Server) DeployContainer(ctx context.Context, username string) (int, err
 		return 0, err
 	}
 	fmt.Println(port)
+
 	return port, nil
 }
 
