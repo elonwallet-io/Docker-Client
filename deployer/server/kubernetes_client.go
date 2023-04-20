@@ -31,14 +31,19 @@ func (s *Server) CheckIfServiceExists(ctx context.Context, username string) (boo
 
 func (s *Server) DeployContainer(ctx context.Context, username string) (int, error) {
 	port := s.port
+	hostBinding := nat.PortBinding{
+		HostIP:   "127.0.0.1",
+		HostPort: strconv.Itoa(port),
+	}
+	containerPort, err := nat.NewPort("tcp", "8081")
+	if err != nil {
+		return 0, err
+	}
+	portBinding := nat.PortMap{containerPort: []nat.PortBinding{hostBinding}}
+
 	resp, err := s.client.ContainerCreate(ctx, &container.Config{
 		Image: s.image,
-	}, &container.HostConfig{PortBindings: nat.PortMap{"8080": []nat.PortBinding{
-		{
-			HostIP:   "127.0.0.1",
-			HostPort: strconv.Itoa(port),
-		},
-	}}}, nil, nil, username)
+	}, &container.HostConfig{PortBindings: portBinding}, nil, nil, username)
 	if err != nil {
 		return 0, err
 	}
