@@ -47,7 +47,7 @@ func New() (*Server, error) {
 func (s *Server) Run() (err error) {
 	s.echo.POST("/enclaves", s.deployment)
 	s.echo.DELETE("/enclaves/:id", s.deletion)
-	port := "8080" // <----------------------------------------------------     Change server port here
+	port := "8082" // <----------------------------------------------------     Change server port here
 	err = s.echo.Start(":" + port)
 	if err == http.ErrServerClosed {
 		err = nil

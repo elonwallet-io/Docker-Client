@@ -29,7 +29,7 @@ func (s *Server) CheckIfServiceExists(ctx context.Context, username string) (boo
 	return false, nil
 }
 
-func (s *Server) DeployContainer(ctx context.Context, username string) (int,error) {
+func (s *Server) DeployContainer(ctx context.Context, username string) (int, error) {
 	port := s.port
 	resp, err := s.client.ContainerCreate(ctx, &container.Config{
 		Image: s.image,
@@ -40,14 +40,14 @@ func (s *Server) DeployContainer(ctx context.Context, username string) (int,erro
 		},
 	}}}, nil, nil, username)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	s.port++
 	if err := s.client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		return 0,err
+		return 0, err
 	}
 	fmt.Println(port)
-	return port,nil
+	return port, nil
 }
 
 type NotFound struct{}
