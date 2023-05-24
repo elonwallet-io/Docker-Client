@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/go-connections/nat"
-	"strconv"
 )
 
 var (
@@ -75,7 +76,7 @@ func (s *Server) DeployContainer(ctx context.Context, username string) (int, err
 		ExposedPorts: nat.PortSet{
 			"8081/tcp": struct{}{},
 		},
-		Env: []string{"FRONTEND_URL=http://localhost:3000", "FRONTEND_HOST=localhost"},
+		Env: []string{"FRONTEND_URL=http://localhost:3000", "FRONTEND_HOST=localhost", "BACKEND_URL=http://host.docker.internal:8080", "USE_INSECURE_HTTP=true"},
 	}, &container.HostConfig{
 		PortBindings: portBinding,
 		Mounts: []mount.Mount{
@@ -122,8 +123,8 @@ func (s *Server) volumeExists(ctx context.Context, name string) (bool, error) {
 		return false, err
 	}
 
-	for _, volume := range volumes.Volumes {
-		if volume.Name == name {
+	for _, v := range volumes.Volumes {
+		if v.Name == name {
 			return true, nil
 		}
 	}
