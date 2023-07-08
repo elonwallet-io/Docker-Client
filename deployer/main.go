@@ -1,19 +1,39 @@
 package main
 
 import (
-	"backend/kubernetes_client/server"
+	"deployer/server"
 	"fmt"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"os"
+	"os/signal"
 )
 
 func main() {
-	server, err := server.New()
-	if err != nil {
-		fmt.Println(err)
-		return
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
+	if err := run(); err != nil {
+		log.Fatal().Caller().Err(err).Msg("failed to start")
 	}
-	err = server.Run()
+}
+
+func run() error {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+
+	s, err := server.New()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("failed to create server: %w", err)
 	}
+
+	go func() {
+		if err := s.Run(); err != nil {
+			log.Fatal().Caller().Err(err).Msg("failed to start")
+		}
+	}()
+
+	<-stop
+
+	return s.Stop()
 }
